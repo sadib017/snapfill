@@ -16,7 +16,7 @@ Your data is stored only in your own browser. Nothing is uploaded anywhere.
 - **Files (CVs and documents):** save several files, each with a note on what it's for (e.g. "CV for software dev roles", "CV for data analysis roles"). Pick one on the Fill tab and it's attached to the page's upload box.
 - **Right-click fill:** right-click any box and pick one saved value from the SnapFill menu. Handy for unusual questions, or to use your second email just once.
 - **Auto-fill on chosen sites:** tick **Auto-fill on this site** and that site fills as soon as a page opens. Other sites wait for your click.
-- **Backup:** export everything to a file and import it on another computer.
+- **Backup:** on the **Contact** tab, export everything to a file and import it on another computer.
 - **Safe by design:** never fills password boxes, never overwrites something you've already typed, and leaves open questions (like "Why do you want this job?") for you.
 
 ## Install
@@ -41,7 +41,7 @@ Tip: keep the folder somewhere permanent, not in a cloud-only (Dropbox/OneDrive 
 4. **Pick the right email, phone or file.** In **My info**, click **Use this** next to the email or phone you want. On the **Fill** tab, choose the file under **File to attach**.
 5. **One box at a time.** Right-click a box and choose a value from the **SnapFill** menu.
 6. **Auto-fill.** On a site you trust, open SnapFill and tick **Auto-fill on this site**.
-7. **Back up.** **My info → Export** saves `snapfill-backup.json`. **Import** loads it back. The file contains your personal info, so keep it private.
+7. **Back up.** **Contact → Export** saves `snapfill-backup.json`. **Import** loads it back. The file contains your personal info, so keep it private.
 
 To change the keyboard shortcut, go to `chrome://extensions/shortcuts`.
 
@@ -56,7 +56,7 @@ To change the keyboard shortcut, go to `chrome://extensions/shortcuts`.
 ```
 snapfill/
 ├── manifest.json   extension settings and permissions
-├── popup.html      the popup window (Fill / My info / Files tabs)
+├── popup.html      the popup window (Fill / My info / Files / Contact tabs)
 ├── popup.js        saves your info and files, backup, runs the fill
 ├── data.js         the standard fields and loading saved info
 ├── inject.js       runs fill.js on the page, including embedded forms
@@ -64,3 +64,7 @@ snapfill/
 ├── background.js   shortcut, right-click menu, auto-fill on chosen sites
 └── icons/          toolbar and store icons
 ```
+
+## Contact
+
+Made by Sadib · [sadib017.github.io](https://sadib017.github.io/) · [sadibhasan3259@gmail.com](mailto:sadibhasan3259@gmail.com)

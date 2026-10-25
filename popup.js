@@ -9,6 +9,7 @@ const showTab = name => {
     b.classList.toggle('on', b.dataset.tab === name);
     $(b.dataset.tab).hidden = b.dataset.tab !== name;
   }
+  $('credit').hidden = name !== 'contact';
 };
 for (const b of document.querySelectorAll('nav button')) b.onclick = () => showTab(b.dataset.tab);
 
