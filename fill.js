@@ -26,7 +26,7 @@
     ['fullName', /name/],
   ];
   // Longest label first, so "University ID" beats "University" on a question that contains both.
-  const custom = fields.filter(f => !f.key).sort((a, b) => b.label.length - a.label.length);
+  const custom = fields.filter(f => !f.key && f.label.trim()).sort((a, b) => b.label.length - a.label.length);
   const resume = resumes.find(r => r.id === activeResume);
   const skip = /^(password|hidden|submit|button|checkbox|radio|image|reset|range|color)$/;
   const describe = el => [
@@ -39,7 +39,7 @@
   const context = el => {
     let node = el;
     while (node.parentElement && node.parentElement !== document.body
-      && node.parentElement.querySelectorAll('input, textarea, select').length === 1) node = node.parentElement;
+      && node.parentElement.querySelectorAll('input:not([type=hidden]), textarea, select').length === 1) node = node.parentElement;
     return (node.innerText || '').slice(0, 500).toLowerCase();
   };
   // Questions about someone else ("Father's name", "Emergency contact phone") never get the user's built-in info.
@@ -80,6 +80,7 @@
   for (const el of document.querySelectorAll('input, textarea, select')) {
     if (el.disabled || el.readOnly || skip.test(el.type)) continue;
     if (el.type === 'file') continue; // handled below
+    if (el.checkVisibility && !el.checkVisibility()) continue; // hidden boxes are often anti-spam traps
     const v = valueFor(el);
     if (!v) continue;
     if (el.tagName === 'SELECT') {
@@ -102,7 +103,8 @@
   const isCv = text => /resume|\bcv\b|curriculum/.test(text);
   const words = note => note.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 1 && !STOP.has(w));
   const escape = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const named = (r, text) => words(r.note).some(w => new RegExp(`\\b${escape(w)}\\b`, 'u').test(text));
+  // Whole-word match that also works for non-English letters (\b only knows a-z).
+  const named = (r, text) => words(r.note).some(w => new RegExp(`(?<![\\p{L}\\p{N}])${escape(w)}(?![\\p{L}\\p{N}])`, 'u').test(text));
   const used = new Set();
   const boxes = [...document.querySelectorAll('input[type=file]')]
     .filter(el => !el.disabled && !el.files.length)

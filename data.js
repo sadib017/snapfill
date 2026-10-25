@@ -11,7 +11,7 @@ var STANDARD = [
 var TWO = ['email', 'phone'];
 
 function valueOf(f) {
-  return f.use ? f.value2 : f.value;
+  return (f.use ? f.value2 : f.value) || f.value || f.value2 || '';
 }
 
 // Returns the saved fields. The first time, converts what older versions saved:

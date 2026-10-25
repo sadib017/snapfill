@@ -14,7 +14,7 @@ const showTab = name => {
 for (const b of document.querySelectorAll('nav button')) b.onclick = () => showTab(b.dataset.tab);
 
 // --- My info ---
-const label = key => STANDARD.find(([k]) => k === key)[1];
+const label = key => STANDARD.find(([k]) => k === key)?.[1] || key;
 const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
 
 const xButton = (onclick, name) => {
@@ -120,7 +120,7 @@ const renderResumes = async () => {
     row.className = 'resume';
     row.innerHTML = '<div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></div><div class="text"><strong></strong><span></span></div><button type="button" class="x" aria-label="Delete file">×</button>';
     row.querySelector('strong').textContent = r.note;
-    row.querySelector('span').textContent = `${r.name} · ${Math.ceil(r.size / 1024)} KB`;
+    row.querySelector('span').textContent = r.size ? `${r.name} · ${Math.ceil(r.size / 1024)} KB` : r.name;
     row.querySelector('button').onclick = async () => {
       const next = resumes.filter(x => x.id !== r.id);
       await store.set({ resumes: next, activeResume: activeResume === r.id ? '' : activeResume });
@@ -145,9 +145,11 @@ const toBase64 = file => new Promise((resolve, reject) => {
 $('resume-form').onsubmit = async e => {
   e.preventDefault();
   const file = $('resume-file').files[0];
+  const note = $('resume-note').value.trim();
+  if (!note) return ($('resume-status').textContent = 'Please add a note, e.g. CV or Transcript.');
   if (file.size > MAX_RESUME) return ($('resume-status').textContent = 'That file is over 5 MB. Please use a smaller one.');
   const { resumes = [], activeResume } = await store.get(['resumes', 'activeResume']);
-  const r = { id: crypto.randomUUID(), note: $('resume-note').value.trim(), name: file.name, type: file.type, size: file.size, data: await toBase64(file) };
+  const r = { id: crypto.randomUUID(), note, name: file.name, type: file.type, size: file.size, data: await toBase64(file) };
   await store.set({ resumes: [...resumes, r], activeResume: activeResume || r.id });
   e.target.reset();
   $('resume-status').textContent = 'File added.';

@@ -22,6 +22,7 @@ function buildMenus() {
 function insertValue(v) {
   const el = document.activeElement;
   if (!el || el.type === 'password') return;
+  if (!el.isContentEditable && !('value' in el)) return; // nothing editable is focused
   if (el.isContentEditable) return document.execCommand('insertText', false, v);
   Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value').set.call(el, v);
   el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -29,10 +30,10 @@ function insertValue(v) {
 }
 
 async function onMenuClick(info, tab) {
-  if (info.menuItemId === 'page') return fillTab(tab.id);
+  if (info.menuItemId === 'page') return fillTab(tab.id).catch(() => {});
   if (!menuValues.length) await buildMenus(); // service worker may have restarted
   const v = menuValues[Number(info.menuItemId.slice(1))];
-  if (v) await chrome.scripting.executeScript({ target: { tabId: tab.id, frameIds: [info.frameId] }, func: insertValue, args: [v] });
+  if (v) await chrome.scripting.executeScript({ target: { tabId: tab.id, frameIds: [info.frameId] }, func: insertValue, args: [v] }).catch(() => {});
 }
 
 // Auto-fill on sites the user marked as trusted.
@@ -49,4 +50,4 @@ chrome.runtime.onInstalled.addListener(buildMenus);
 chrome.storage.onChanged.addListener(c => { if (c.fields) buildMenus(); });
 chrome.contextMenus.onClicked.addListener(onMenuClick);
 chrome.tabs.onUpdated.addListener(onTabUpdated);
-chrome.commands.onCommand.addListener((cmd, tab) => { if (cmd === 'fill-form') fillTab(tab.id); });
+chrome.commands.onCommand.addListener((cmd, tab) => { if (cmd === 'fill-form') fillTab(tab.id).catch(() => {}); }); // fails quietly on browser pages
