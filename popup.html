@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <title>SnapFill</title>
 <style>
-  body { font: 13px system-ui, sans-serif; width: 320px; margin: 0; color: #111827; }
+  body { font: 13px system-ui, sans-serif; width: 340px; margin: 0; color: #111827; }
   header { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #e5e7eb; }
   .logo { width: 26px; height: 26px; }
   nav { display: flex; gap: 4px; padding: 0 10px; border-bottom: 1px solid #e5e7eb; }
@@ -11,27 +11,43 @@
   nav button.on { color: #1d4ed8; border-color: #2563eb; }
   section { padding: 14px; }
   label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: #374151; }
-  input { width: 100%; box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 6px; font: 13px system-ui; margin-top: 3px; }
+  input, select { width: 100%; box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 6px; font: 13px system-ui; margin-top: 3px; background: #fff; }
+  input[type=checkbox], input[type=radio] { width: auto; height: auto; margin: 0; }
+  input[type=file] { height: auto; padding: 6px; }
   .primary { width: 100%; height: 44px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font: 600 14px system-ui; cursor: pointer; }
   .secondary { height: 32px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
-  .hint { color: #6b7280; font-size: 12px; text-align: center; margin: 8px 0 0; }
-  #status { margin-top: 10px; color: #047857; min-height: 1em; text-align: center; }
+  .hint { color: #6b7280; font-size: 12px; margin: 6px 0; }
+  .center { text-align: center; }
+  .status { color: #047857; min-height: 1em; text-align: center; margin-top: 8px; }
   .row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
   .row input { margin: 0; }
-  .row button { flex: none; width: 28px; height: 28px; border: 0; background: none; color: #b91c1c; font-size: 18px; cursor: pointer; }
-  h2 { font-size: 13px; margin: 14px 0 6px; }
+  .x { flex: none; width: 28px; height: 28px; border: 0; background: none; color: #b91c1c; font-size: 18px; cursor: pointer; }
+  .check { display: flex; gap: 8px; align-items: center; font-weight: 500; margin-top: 12px; }
+  h2 { font-size: 13px; margin: 16px 0 6px; }
+  .resume { display: flex; gap: 8px; align-items: center; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 6px; }
+  .resume div { flex: 1; min-width: 0; }
+  .resume strong, .resume span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .resume span { color: #6b7280; font-size: 12px; }
+  .buttons { display: flex; gap: 8px; }
 </style>
 <header><img class="logo" src="icons/icon48.png" alt=""><strong>SnapFill</strong></header>
 <nav>
-  <button id="tab-fill" class="on">Fill</button>
-  <button id="tab-info">My info</button>
+  <button data-tab="fill" class="on">Fill</button>
+  <button data-tab="info">My info</button>
+  <button data-tab="resumes">Resumes</button>
 </nav>
-<section id="fill-view">
-  <button id="fill" class="primary">Fill this page</button>
-  <p class="hint">Shortcut: Alt + Shift + F</p>
-  <div id="status" role="status"></div>
+
+<section id="fill">
+  <button id="fill-btn" class="primary">Fill this page</button>
+  <p class="hint center">Shortcut: Alt + Shift + F · or right-click any box</p>
+  <label>Resume to attach
+    <select id="active-resume"><option value="">None</option></select>
+  </label>
+  <label class="check"><input type="checkbox" id="auto"> <span id="auto-label">Auto-fill on this site</span></label>
+  <div id="fill-status" class="status" role="status"></div>
 </section>
-<section id="info-view" hidden>
+
+<section id="info" hidden>
   <form id="form">
     <label>First name <input name="firstName"></label>
     <label>Last name <input name="lastName"></label>
@@ -48,11 +64,31 @@
     <label>LinkedIn URL <input name="linkedin"></label>
     <label>Website / portfolio <input name="website"></label>
     <h2>My own fields</h2>
-    <p class="hint" style="text-align:left;margin:0 0 6px">Filled into any box whose label contains the field name.</p>
+    <p class="hint">Filled into any box whose label contains the field name.</p>
     <div id="custom"></div>
     <button type="button" id="add" class="secondary">+ Add field</button>
     <button class="primary" style="margin-top:12px">Save</button>
   </form>
+  <h2>Backup</h2>
+  <p class="hint">Saves your info, resumes and auto-fill sites to a file you can import on another computer.</p>
+  <div class="buttons">
+    <button id="export" class="secondary">Export</button>
+    <button id="import" class="secondary">Import</button>
+    <input id="import-file" type="file" accept=".json,application/json" hidden>
+  </div>
+  <div id="info-status" class="status" role="status"></div>
+</section>
+
+<section id="resumes" hidden>
+  <p class="hint">Save each version of your CV with a note on what it's for. Pick which one to attach on the Fill tab.</p>
+  <div id="resume-list"></div>
+  <h2>Add a resume</h2>
+  <form id="resume-form">
+    <label>File (PDF or Word) <input id="resume-file" type="file" accept=".pdf,.doc,.docx" required></label>
+    <label>Note <input id="resume-note" placeholder="e.g. Software dev roles" required></label>
+    <button class="primary">Add resume</button>
+  </form>
+  <div id="resume-status" class="status" role="status"></div>
 </section>
 <script src="inject.js"></script>
 <script src="popup.js"></script>

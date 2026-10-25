@@ -1,6 +1,7 @@
-// Injected on demand: fills empty fields that match the saved profile. Never touches passwords.
+// Injected on demand: fills empty fields that match the saved profile, and attaches the chosen resume.
+// Never touches passwords.
 (async () => {
-  const { profile = {} } = await chrome.storage.local.get('profile');
+  const { profile = {}, resumes = [], activeResume } = await chrome.storage.local.get(['profile', 'resumes', 'activeResume']);
   const p = { ...profile, fullName: [profile.firstName, profile.lastName].filter(Boolean).join(' ') };
   // First match wins, so order matters ("email address" before "address", "company name" before "name").
   const rules = [
@@ -21,7 +22,8 @@
     ['fullName', /name/],
   ];
   const custom = (profile.custom || []).filter(c => c.label && c.value);
-  const skip = /^(password|hidden|submit|button|checkbox|radio|file|image|reset|range|color)$/;
+  const resume = resumes.find(r => r.id === activeResume);
+  const skip = /^(password|hidden|submit|button|checkbox|radio|image|reset|range|color)$/;
   const describe = el => [
     el.autocomplete, el.name, el.id, el.placeholder, el.getAttribute('aria-label'),
     ...[...(el.labels || [])].map(l => l.textContent),
@@ -42,9 +44,26 @@
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
+  const attach = (el, r) => {
+    const bytes = Uint8Array.from(atob(r.data), c => c.charCodeAt(0));
+    const dt = new DataTransfer();
+    dt.items.add(new File([bytes], r.name, { type: r.type }));
+    el.files = dt.files;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  };
   let filled = 0;
   for (const el of document.querySelectorAll('input, textarea, select')) {
     if (el.disabled || el.readOnly || skip.test(el.type)) continue;
+    if (el.type === 'file') {
+      // ponytail: label-based guess; custom drag-and-drop uploaders without a real <input type=file> are not reached.
+      const text = describe(el);
+      if (resume && !el.files.length && /resume|\bcv\b|curriculum/.test(text) && !/cover/.test(text)) {
+        attach(el, resume);
+        filled++;
+      }
+      continue;
+    }
     const v = valueFor(el);
     if (!v) continue;
     if (el.tagName === 'SELECT') {
