@@ -187,4 +187,4 @@ Extras:
 Made with ❤️ by **Sadib**
 
 - 🌐 Website: [sadib017.github.io](https://sadib017.github.io/)
-- ✉️ Email: [sadibhasan3259@gmail.com](mailto:sadibhasan3259@gmail.com)
+- ✉️ Email: [sadibhasan520@gmail.com](mailto:sadibhasan520@gmail.com)
