@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "SnapFill",
+  "version": "1.0.0",
+  "description": "Fills your saved personal info into forms with one click. Your data stays in this browser.",
+  "permissions": ["storage", "scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "action": { "default_popup": "popup.html", "default_title": "SnapFill" },
+  "background": { "service_worker": "background.js" },
+  "commands": {
+    "fill-form": { "suggested_key": { "default": "Alt+Shift+F" }, "description": "Fill the form on this page" }
+  }
+}
