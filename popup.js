@@ -117,7 +117,7 @@ const renderResumes = async () => {
   $('resume-list').replaceChildren(...resumes.map(r => {
     const row = document.createElement('div');
     row.className = 'resume';
-    row.innerHTML = '<div><strong></strong><span></span></div><button type="button" class="x" aria-label="Delete resume">×</button>';
+    row.innerHTML = '<div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></div><div class="text"><strong></strong><span></span></div><button type="button" class="x" aria-label="Delete file">×</button>';
     row.querySelector('strong').textContent = r.note;
     row.querySelector('span').textContent = `${r.name} · ${Math.ceil(r.size / 1024)} KB`;
     row.querySelector('button').onclick = async () => {
@@ -127,7 +127,7 @@ const renderResumes = async () => {
     };
     return row;
   }));
-  if (!resumes.length) $('resume-list').innerHTML = '<p class="hint">No resumes yet.</p>';
+  if (!resumes.length) $('resume-list').innerHTML = '<p class="hint">No files yet.</p>';
   const select = $('active-resume');
   select.replaceChildren(new Option('None', ''), ...resumes.map(r => new Option(`${r.note} (${r.name})`, r.id)));
   select.value = activeResume;
@@ -144,12 +144,12 @@ const toBase64 = file => new Promise((resolve, reject) => {
 $('resume-form').onsubmit = async e => {
   e.preventDefault();
   const file = $('resume-file').files[0];
-  if (file.size > MAX_RESUME) return ($('resume-status').textContent = 'That file is over 5 MB. Please use a smaller PDF.');
+  if (file.size > MAX_RESUME) return ($('resume-status').textContent = 'That file is over 5 MB. Please use a smaller one.');
   const { resumes = [], activeResume } = await store.get(['resumes', 'activeResume']);
   const r = { id: crypto.randomUUID(), note: $('resume-note').value.trim(), name: file.name, type: file.type, size: file.size, data: await toBase64(file) };
   await store.set({ resumes: [...resumes, r], activeResume: activeResume || r.id });
   e.target.reset();
-  $('resume-status').textContent = 'Resume added.';
+  $('resume-status').textContent = 'File added.';
   renderResumes();
 };
 

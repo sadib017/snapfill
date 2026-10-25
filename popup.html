@@ -3,57 +3,71 @@
 <meta charset="utf-8">
 <title>SnapFill</title>
 <style>
-  body { font: 13px system-ui, sans-serif; width: 340px; margin: 0; color: #111827; }
-  header { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #e5e7eb; }
-  .logo { width: 26px; height: 26px; }
-  nav { display: flex; gap: 4px; padding: 0 10px; border-bottom: 1px solid #e5e7eb; }
-  nav button { border: 0; background: none; padding: 10px 12px; font: 600 13px system-ui; color: #6b7280; border-bottom: 2px solid transparent; cursor: pointer; }
-  nav button.on { color: #1d4ed8; border-color: #2563eb; }
+  :root { --ink: #1e1b4b; --muted: #6b7280; --line: #dbe3ff; --brand: #4f46e5; --brand2: #3b82f6; --soft: #eef2ff; }
+  body { font: 13px system-ui, sans-serif; width: 350px; margin: 0; color: var(--ink); background: #f6f7ff; }
+  header { display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: #fff; }
+  .logo { width: 28px; height: 28px; }
+  header strong { font-size: 15px; }
+  nav { display: flex; gap: 6px; padding: 8px 12px 10px; background: #fff; border-bottom: 1px solid var(--line); }
+  nav button { flex: 1; border: 0; border-radius: 999px; padding: 8px 0; background: var(--soft); font: 600 13px system-ui; color: #4338ca; cursor: pointer; transition: background .15s, color .15s; }
+  nav button:hover { background: #e0e7ff; }
+  nav button.on { background: linear-gradient(135deg, var(--brand2), var(--brand)); color: #fff; box-shadow: 0 2px 8px rgba(79,70,229,.3); }
   section { padding: 14px; }
-  label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; color: #374151; }
-  input, select { width: 100%; box-sizing: border-box; height: 32px; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 6px; font: 13px system-ui; margin-top: 3px; background: #fff; }
-  input[type=checkbox], input[type=radio] { width: auto; height: auto; margin: 0; }
-  input[type=file] { height: auto; padding: 6px; }
-  .primary { width: 100%; height: 44px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font: 600 14px system-ui; cursor: pointer; }
-  .secondary { height: 32px; padding: 0 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
-  .hint { color: #6b7280; font-size: 12px; margin: 6px 0; }
+  label { display: block; margin-bottom: 10px; font-weight: 600; font-size: 12px; color: #3730a3; }
+  input, select { width: 100%; box-sizing: border-box; height: 38px; padding: 0 12px; margin-top: 4px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; font: 13px system-ui; color: var(--ink); outline: none; transition: border-color .15s, box-shadow .15s, background .15s; }
+  input:hover, select:hover { border-color: #a5b4fc; }
+  input:focus, select:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(99,102,241,.18); background: #fbfcff; }
+  input::placeholder { color: #a1a7c4; }
+  select { appearance: none; padding-right: 34px; cursor: pointer; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 14px; }
+  input[type=checkbox] { width: 16px; height: 16px; margin: 0; accent-color: var(--brand); }
+  input[type=file] { height: auto; padding: 10px; border-style: dashed; background: #fbfcff; cursor: pointer; }
+  input[type=file]::file-selector-button { margin-right: 10px; padding: 6px 12px; border: 0; border-radius: 999px; background: var(--soft); color: #4338ca; font: 600 12px system-ui; cursor: pointer; }
+  .primary { width: 100%; height: 44px; border: 0; border-radius: 14px; background: linear-gradient(135deg, var(--brand2), var(--brand)); color: #fff; font: 600 14px system-ui; cursor: pointer; box-shadow: 0 4px 14px rgba(79,70,229,.3); transition: transform .1s, box-shadow .15s, filter .15s; }
+  .primary:hover { filter: brightness(1.06); box-shadow: 0 6px 18px rgba(79,70,229,.38); }
+  .primary:active { transform: translateY(1px); }
+  .secondary { height: 34px; padding: 0 14px; border: 1.5px solid #c7d2fe; border-radius: 12px; background: var(--soft); color: #4338ca; font: 600 12px system-ui; cursor: pointer; transition: background .15s; }
+  .secondary:hover { background: #e0e7ff; }
+  .hint { color: var(--muted); font-size: 12px; margin: 6px 0; }
   .center { text-align: center; }
-  .status { color: #047857; min-height: 1em; text-align: center; margin-top: 8px; }
-  .row { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .status { color: #047857; min-height: 1em; text-align: center; margin-top: 8px; font-weight: 500; }
+  .row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
   .row input { margin: 0; }
-  .x { flex: none; width: 28px; height: 28px; border: 0; background: none; color: #b91c1c; font-size: 18px; cursor: pointer; }
-  .check { display: flex; gap: 8px; align-items: center; font-weight: 500; margin-top: 12px; }
-  h2 { font-size: 13px; margin: 16px 0 6px; }
-  .resume { display: flex; gap: 8px; align-items: center; padding: 8px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 6px; }
-  .resume div { flex: 1; min-width: 0; }
+  .x { flex: none; width: 30px; height: 30px; border: 0; border-radius: 10px; background: none; color: #e11d48; font-size: 18px; cursor: pointer; transition: background .15s; }
+  .x:hover { background: #ffe4e6; }
+  .check { display: flex; gap: 8px; align-items: center; font-weight: 500; margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: #fff; border: 1.5px solid var(--line); cursor: pointer; }
+  h2 { font-size: 13px; margin: 18px 0 6px; color: #3730a3; }
+  .resume { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; margin-bottom: 8px; }
+  .resume .icon { flex: none; width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #dbeafe, #e0e7ff); display: grid; place-items: center; }
+  .resume .icon svg { width: 18px; height: 18px; stroke: var(--brand); }
+  .resume div.text { flex: 1; min-width: 0; }
   .resume strong, .resume span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .resume span { color: #6b7280; font-size: 12px; }
+  .resume span { color: var(--muted); font-size: 12px; }
   .buttons { display: flex; gap: 8px; }
   .field { display: flex; gap: 6px; align-items: flex-end; }
   .field label { flex: 1; }
-  .field .x { margin-bottom: 10px; }
-  .row select { margin: 0; flex: 1; }
-  .two { margin-bottom: 8px; }
-  .field-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12px; color: #374151; }
-  .line { display: flex; gap: 6px; align-items: center; margin-top: 3px; }
+  .field .x { margin-bottom: 14px; }
+  .two { margin-bottom: 10px; }
+  .field-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12px; color: #3730a3; }
+  .line { display: flex; gap: 6px; align-items: center; margin-top: 4px; }
   .line input { margin: 0; }
-  .use { flex: none; width: 78px; height: 32px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; font: 500 12px system-ui; cursor: pointer; }
-  .use.on { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 600; }
-  footer { display: flex; justify-content: center; align-items: center; gap: 4px; padding: 10px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  .use { flex: none; width: 82px; height: 38px; border: 1.5px solid #c7d2fe; border-radius: 12px; background: #fff; color: #4338ca; font: 600 12px system-ui; cursor: pointer; transition: background .15s; }
+  .use:hover { background: var(--soft); }
+  .use.on { border-color: transparent; background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+  footer { display: flex; justify-content: center; align-items: center; gap: 4px; padding: 10px; border-top: 1px solid var(--line); background: #fff; color: var(--muted); font-size: 12px; }
   footer svg { width: 13px; height: 13px; fill: #e11d48; }
-  #add-standard { margin: 4px 0 8px; color: #374151; }
+  #add-standard { margin: 4px 0 8px; color: #4338ca; }
 </style>
 <header><img class="logo" src="icons/icon48.png" alt=""><strong>SnapFill</strong></header>
 <nav>
   <button data-tab="fill" class="on">Fill</button>
   <button data-tab="info">My info</button>
-  <button data-tab="resumes">Resumes</button>
+  <button data-tab="resumes">Files</button>
 </nav>
 
 <section id="fill">
   <button id="fill-btn" class="primary">Fill this page</button>
   <p class="hint center">Shortcut: Alt + Shift + F · or right-click any box</p>
-  <label>Resume to attach
+  <label>File to attach
     <select id="active-resume"><option value="">None</option></select>
   </label>
   <label class="check"><input type="checkbox" id="auto"> <span id="auto-label">Auto-fill on this site</span></label>
@@ -70,7 +84,7 @@
     <button class="primary">Save</button>
   </form>
   <h2>Backup</h2>
-  <p class="hint">Saves your info, resumes and auto-fill sites to a file you can import on another computer.</p>
+  <p class="hint">Saves your info, files and auto-fill sites to a file you can import on another computer.</p>
   <div class="buttons">
     <button id="export" class="secondary">Export</button>
     <button id="import" class="secondary">Import</button>
@@ -80,13 +94,13 @@
 </section>
 
 <section id="resumes" hidden>
-  <p class="hint">Save each version of your CV with a note on what it's for. Pick which one to attach on the Fill tab.</p>
+  <p class="hint">Save your CVs and other documents, each with a note on what it's for. Pick which one to attach on the Fill tab.</p>
   <div id="resume-list"></div>
-  <h2>Add a resume</h2>
+  <h2>Add a file</h2>
   <form id="resume-form">
-    <label>File (PDF or Word) <input id="resume-file" type="file" accept=".pdf,.doc,.docx" required></label>
-    <label>Note <input id="resume-note" placeholder="e.g. Software dev roles" required></label>
-    <button class="primary">Add resume</button>
+    <label>File (PDF, Word or image, max 5 MB) <input id="resume-file" type="file" required></label>
+    <label>Note <input id="resume-note" placeholder="e.g. CV for software dev roles" required></label>
+    <button class="primary">Add file</button>
   </form>
   <div id="resume-status" class="status" role="status"></div>
 </section>

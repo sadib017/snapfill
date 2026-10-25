@@ -68,13 +68,17 @@
     el.dispatchEvent(new Event('input', { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
+  const accepts = (el, r) => !el.accept || el.accept.split(',').map(t => t.trim().toLowerCase()).some(t =>
+    t.startsWith('.') ? r.name.toLowerCase().endsWith(t) : t.endsWith('/*') ? r.type.startsWith(t.slice(0, -1)) : t === r.type);
   let filled = 0;
   for (const el of document.querySelectorAll('input, textarea, select')) {
     if (el.disabled || el.readOnly || skip.test(el.type)) continue;
     if (el.type === 'file') {
-      // ponytail: label-based guess; custom drag-and-drop uploaders without a real <input type=file> are not reached.
+      // Any empty upload box takes the chosen file, unless it asks for something else (a cover letter or a photo)
+      // or only accepts other file types.
+      // ponytail: custom uploaders without a real <input type=file> (e.g. Google Forms' Drive picker) are not reached.
       const text = describe(el) + ' ' + context(el);
-      if (resume && !el.files.length && /resume|\bcv\b|curriculum/.test(text) && !/cover/.test(text)) {
+      if (resume && !el.files.length && !/cover|photo|picture|image|avatar|signature|logo/.test(text) && accepts(el, resume)) {
         attach(el, resume);
         filled++;
       }
