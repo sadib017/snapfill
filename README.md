@@ -60,7 +60,9 @@ Typing the same name, email and phone number into every job application, sign-up
 | Feature | What it does |
 | --- | --- |
 | **Several files** | Save CVs and documents, each with a note like "CV for data analysis roles" |
-| **Pick per form** | Choose which file to attach before you fill |
+| **Pick your CV** | Choose which CV goes into CV/resume boxes. Your choice is remembered |
+| **Auto-match by note** | Other files go to the box their note names: note "Transcript" → "Upload your transcript" |
+| **No duplicates** | Each file is attached once, and boxes with no match are left for you |
 
 ### Safety and backup
 
@@ -117,16 +119,26 @@ The popup has four tabs.
 4. Don't need a field? Click **×**.
 5. Need something extra? Click **+ Add my own field**, e.g. `University ID` → `221-15-1234`.
 
-### 📎 Files: save your CVs
+### 📎 Files: save your CVs and documents
 
 1. Choose a file (PDF, Word or image, max 5 MB).
-2. Add a note, e.g. *CV for software dev roles*.
+2. Add a short note using the word forms use for it:
+
+   | Upload box says | Note |
+   | --- | --- |
+   | "Upload CV / Resume" | `CV software`, `CV data` … |
+   | "Upload your transcript" | `Transcript` |
+   | "Attach NID" | `NID` |
+   | "Certificate" | `Certificate` |
+
 3. Click **Add file**.
+
+The file's own name doesn't matter, only the note. Capitals don't matter either.
 
 ### ⚡ Fill: fill a form
 
 1. Open any form.
-2. Pick a file under **File to attach** (optional).
+2. Pick your CV under **File to attach** (remembered, so only change it when you need another CV).
 3. Click **Fill this page**, or press **Alt + Shift + F**.
 4. Check the answers and submit as usual.
 

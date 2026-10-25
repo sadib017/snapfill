@@ -1,7 +1,7 @@
 importScripts('data.js', 'inject.js');
 
 // Right-click menu: "Fill this page" plus every saved value (both emails and phones), rebuilt whenever they change.
-async function buildMenus() {
+async function rebuildMenus() {
   const items = (await loadFields()).flatMap(f => [f.value, f.value2].filter(Boolean).map(v => [f.label, v]));
   await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({ id: 'page', title: 'SnapFill: fill this page', contexts: ['page', 'editable'] });
@@ -12,6 +12,11 @@ async function buildMenus() {
   menuValues = items.map(([, v]) => v);
 }
 let menuValues = [];
+// Runs one rebuild at a time; overlapping ones would create duplicate menu ids.
+let menuQueue = Promise.resolve();
+function buildMenus() {
+  return (menuQueue = menuQueue.then(rebuildMenus, rebuildMenus));
+}
 
 // Puts one value into the box the user right-clicked (the focused element in that frame).
 function insertValue(v) {

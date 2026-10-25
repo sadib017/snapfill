@@ -1,4 +1,4 @@
-// Injected on demand: fills empty fields that match your saved info, and attaches the chosen resume.
+// Injected on demand: fills empty fields that match your saved info, and attaches your saved files.
 // Never touches passwords.
 (async () => {
   const fields = (await loadFields()).map(f => ({ ...f, value: valueOf(f) })).filter(f => f.value); // data.js, injected first
@@ -75,21 +75,11 @@
     el.dispatchEvent(new Event('change', { bubbles: true }));
   };
   const accepts = (el, r) => !el.accept || el.accept.split(',').map(t => t.trim().toLowerCase()).some(t =>
-    t.startsWith('.') ? r.name.toLowerCase().endsWith(t) : t.endsWith('/*') ? r.type.startsWith(t.slice(0, -1)) : t === r.type);
+    t.startsWith('.') ? r.name.toLowerCase().endsWith(t) : t.endsWith('/*') ? (r.type || '').startsWith(t.slice(0, -1)) : t === r.type);
   let filled = 0;
   for (const el of document.querySelectorAll('input, textarea, select')) {
     if (el.disabled || el.readOnly || skip.test(el.type)) continue;
-    if (el.type === 'file') {
-      // Any empty upload box takes the chosen file, unless it asks for something else (a cover letter or a photo)
-      // or only accepts other file types.
-      // ponytail: custom uploaders without a real <input type=file> (e.g. Google Forms' Drive picker) are not reached.
-      const text = describe(el) + ' ' + context(el);
-      if (resume && !el.files.length && !/cover|photo|picture|image|avatar|signature|logo/.test(text) && accepts(el, resume)) {
-        attach(el, resume);
-        filled++;
-      }
-      continue;
-    }
+    if (el.type === 'file') continue; // handled below
     const v = valueFor(el);
     if (!v) continue;
     if (el.tagName === 'SELECT') {
@@ -104,5 +94,34 @@
     }
     filled++;
   }
+
+  // Upload boxes. A CV/resume box gets the file picked on the Fill tab. Any other box gets the saved file whose
+  // note names it (note "Transcript" -> "Upload your transcript"). Then the picked file, if still unused, goes
+  // into the first remaining box that isn't for a cover letter or photo. Each file is used once.
+  const STOP = new Set(['for', 'the', 'and', 'with', 'my', 'of', 'to', 'in', 'on', 'role', 'roles', 'job', 'jobs', 'file', 'copy', 'new', 'old', 'final', 'version', 'pdf', 'doc', 'docx']);
+  const isCv = text => /resume|\bcv\b|curriculum/.test(text);
+  const words = note => note.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length > 1 && !STOP.has(w));
+  const escape = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const named = (r, text) => words(r.note).some(w => new RegExp(`\\b${escape(w)}\\b`, 'u').test(text));
+  const used = new Set();
+  const boxes = [...document.querySelectorAll('input[type=file]')]
+    .filter(el => !el.disabled && !el.files.length)
+    .map(el => ({ el, text: describe(el) + ' ' + context(el) }));
+  const put = (box, r) => {
+    attach(box.el, r);
+    used.add(r.id);
+    box.done = true;
+    filled++;
+  };
+  for (const box of boxes) {
+    if (isCv(box.text)) {
+      if (resume && !used.has(resume.id) && accepts(box.el, resume)) put(box, resume);
+      continue;
+    }
+    const r = resumes.find(r => !used.has(r.id) && !isCv(r.note.toLowerCase()) && named(r, box.text) && accepts(box.el, r));
+    if (r) put(box, r);
+  }
+  const free = boxes.find(b => !b.done && !isCv(b.text) && !/cover|photo|picture|image|avatar|signature|logo/.test(b.text));
+  if (resume && !used.has(resume.id) && free && accepts(free.el, resume)) put(free, resume);
   return filled;
 })();
