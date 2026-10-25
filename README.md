@@ -39,7 +39,8 @@ Typing the same name, email and phone number into every job application, sign-up
 | Feature | What it does |
 | --- | --- |
 | **One-click fill** | Click **Fill this page** or press **Alt + Shift + F** |
-| **Smart matching** | Reads labels and question text, so "Email", "E-mail address" and "Your email" all work |
+| **Smart matching** | Reads labels and question text, so "Email", "Gmail" and "Your e-mail" all work. Capitals don't matter |
+| **Knows it's not you** | Skips questions about other people, like "Father's name" or "Emergency contact phone" |
 | **Works everywhere** | Google Forms, React/Vue sites, and forms embedded from other sites |
 | **Dropdowns** | Picks the matching option, e.g. your country |
 | **Right-click fill** | Right-click any box and choose one saved value |
@@ -147,6 +148,7 @@ Extras:
 | Situation | What happens |
 | --- | --- |
 | A question uses unusual wording | Add your own field with that word, or right-click the box |
+| You want "Father's name" filled too | Add your own field `Father's name` with the answer, and it will be |
 | Google Forms file upload | It uses Google Drive's picker, so upload by hand there |
 | A site with its own custom upload tool | SnapFill may not reach it, so upload by hand |
 | Browser pages (`chrome://…`) and the Web Store | Browsers block all extensions there |

@@ -7,7 +7,7 @@
   p.fullName ||= [p.firstName, p.lastName].filter(Boolean).join(' ');
   // First match wins, so order matters ("email address" before "address", "company name" before "name").
   const rules = [
-    ['email', /e-?mail/],
+    ['email', /e-?mail|\bg?mail\b/],
     ['firstName', /first.?name|given.?name|fname|forename/],
     ['lastName', /last.?name|family.?name|surname|lname/],
     ['studentId', /student.?id|universit\w*.?id|varsity.?id|\broll\b|registration.?(no|num)|matric/],
@@ -42,17 +42,23 @@
       && node.parentElement.querySelectorAll('input, textarea, select').length === 1) node = node.parentElement;
     return (node.innerText || '').slice(0, 500).toLowerCase();
   };
-  const match = text => {
-    // Custom fields are the user's own wording, so they win over the built-in guesses.
-    const c = custom.find(c => text.includes(c.label.toLowerCase()));
-    if (c) return c.value;
+  // Questions about someone else ("Father's name", "Emergency contact phone") never get the user's built-in info.
+  const OTHER = /father|mother|guardian|parent|spouse|husband|wife|middle.?name|nominee|referee|reference|emergency|next.of.kin|recommender/;
+  // Custom fields are the user's own wording, so they win over the built-in guesses (even for the cases above).
+  const customFor = text => custom.find(c => text.includes(c.label.toLowerCase()))?.value;
+  const builtin = text => {
+    if (OTHER.test(text)) return;
     const key = rules.find(([, re]) => re.test(text))?.[0];
     return key && p[key];
   };
   const valueFor = el => {
+    const text = describe(el);
+    const own = customFor(text);
+    if (own || OTHER.test(text)) return own;
     if (el.type === 'email') return p.email;
     if (el.type === 'tel') return p.phone;
-    return match(describe(el)) || match(context(el));
+    const around = context(el);
+    return builtin(text) || customFor(around) || builtin(around);
   };
   const setValue = (el, v) => {
     // Native setter so React/Vue forms notice the change.
