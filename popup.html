@@ -29,6 +29,12 @@
   .resume strong, .resume span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .resume span { color: #6b7280; font-size: 12px; }
   .buttons { display: flex; gap: 8px; }
+  .field { display: flex; gap: 6px; align-items: flex-end; }
+  .field label { flex: 1; }
+  .field .x { margin-bottom: 10px; }
+  .row select { margin: 0; flex: 1; }
+  .danger { color: #b91c1c; }
+  #add-standard { margin: 4px 0 8px; color: #374151; }
 </style>
 <header><img class="logo" src="icons/icon48.png" alt=""><strong>SnapFill</strong></header>
 <nav>
@@ -40,6 +46,9 @@
 <section id="fill">
   <button id="fill-btn" class="primary">Fill this page</button>
   <p class="hint center">Shortcut: Alt + Shift + F · or right-click any box</p>
+  <label>Profile to use
+    <select id="active-profile"></select>
+  </label>
   <label>Resume to attach
     <select id="active-resume"><option value="">None</option></select>
   </label>
@@ -48,26 +57,19 @@
 </section>
 
 <section id="info" hidden>
+  <div class="row">
+    <select id="profile-select" aria-label="Profile to edit"></select>
+    <button type="button" id="new-profile" class="secondary" title="Copy this profile into a new one">+ New</button>
+    <button type="button" id="delete-profile" class="secondary danger">Delete</button>
+  </div>
+  <p class="hint">Profiles keep different versions of your info, e.g. a Personal and a Work email.</p>
   <form id="form">
-    <label>First name <input name="firstName"></label>
-    <label>Last name <input name="lastName"></label>
-    <label>Email <input name="email" type="email"></label>
-    <label>Phone <input name="phone"></label>
-    <label>Username <input name="username"></label>
-    <label>Street address <input name="address"></label>
-    <label>City <input name="city"></label>
-    <label>State / province <input name="state"></label>
-    <label>ZIP / postal code <input name="zip"></label>
-    <label>Country <input name="country"></label>
-    <label>Company <input name="company"></label>
-    <label>Job title <input name="jobTitle"></label>
-    <label>LinkedIn URL <input name="linkedin"></label>
-    <label>Website / portfolio <input name="website"></label>
-    <h2>My own fields</h2>
-    <p class="hint">Filled into any box whose label contains the field name.</p>
-    <div id="custom"></div>
-    <button type="button" id="add" class="secondary">+ Add field</button>
-    <button class="primary" style="margin-top:12px">Save</button>
+    <label>Profile name <input id="profile-name" required></label>
+    <div id="fields"></div>
+    <select id="add-standard" aria-label="Add back a standard field"></select>
+    <button type="button" id="add" class="secondary">+ Add my own field</button>
+    <p class="hint">Your own fields fill any box whose question contains the field name.</p>
+    <button class="primary">Save</button>
   </form>
   <h2>Backup</h2>
   <p class="hint">Saves your info, resumes and auto-fill sites to a file you can import on another computer.</p>
@@ -90,6 +92,7 @@
   </form>
   <div id="resume-status" class="status" role="status"></div>
 </section>
+<script src="data.js"></script>
 <script src="inject.js"></script>
 <script src="popup.js"></script>
 </html>

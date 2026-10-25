@@ -1,18 +1,15 @@
-importScripts('inject.js');
+importScripts('data.js', 'inject.js');
 
-const LABELS = {
-  firstName: 'First name', lastName: 'Last name', email: 'Email', phone: 'Phone', username: 'Username',
-  address: 'Street address', city: 'City', state: 'State', zip: 'ZIP', country: 'Country',
-  company: 'Company', jobTitle: 'Job title', linkedin: 'LinkedIn', website: 'Website',
-};
-
-// Right-click menu: "Fill this page" plus one entry per saved value, rebuilt whenever the info changes.
+// Right-click menu: "Fill this page" plus every saved value from every profile, rebuilt whenever they change.
 async function buildMenus() {
-  const { profile = {} } = await chrome.storage.local.get('profile');
-  const items = [
-    ...Object.entries(LABELS).filter(([k]) => profile[k]).map(([k, label]) => [label, profile[k]]),
-    ...(profile.custom || []).map(c => [c.label, c.value]),
-  ];
+  const { profiles } = await loadProfiles();
+  const seen = new Set();
+  const items = [];
+  for (const p of profiles) for (const f of p.fields) {
+    if (!f.value || seen.has(f.label + '\n' + f.value)) continue;
+    seen.add(f.label + '\n' + f.value);
+    items.push([profiles.length > 1 ? `${f.label} (${p.name})` : f.label, f.value]);
+  }
   await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({ id: 'page', title: 'SnapFill: fill this page', contexts: ['page', 'editable'] });
   items.forEach(([label, value], i) => {
@@ -51,7 +48,7 @@ async function onTabUpdated(tabId, change, tab) {
 }
 
 chrome.runtime.onInstalled.addListener(buildMenus);
-chrome.storage.onChanged.addListener(c => { if (c.profile) buildMenus(); });
+chrome.storage.onChanged.addListener(c => { if (c.profiles) buildMenus(); });
 chrome.contextMenus.onClicked.addListener(onMenuClick);
 chrome.tabs.onUpdated.addListener(onTabUpdated);
 chrome.commands.onCommand.addListener((cmd, tab) => { if (cmd === 'fill-form') fillTab(tab.id); });

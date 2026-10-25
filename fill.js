@@ -1,13 +1,18 @@
 // Injected on demand: fills empty fields that match the saved profile, and attaches the chosen resume.
 // Never touches passwords.
 (async () => {
-  const { profile = {}, resumes = [], activeResume } = await chrome.storage.local.get(['profile', 'resumes', 'activeResume']);
-  const p = { ...profile, fullName: [profile.firstName, profile.lastName].filter(Boolean).join(' ') };
+  const { profiles, activeProfile } = await loadProfiles(); // from data.js, injected first
+  const { resumes = [], activeResume } = await chrome.storage.local.get(['resumes', 'activeResume']);
+  const fields = profiles.find(x => x.id === activeProfile).fields.filter(f => f.value);
+  const p = Object.fromEntries(fields.filter(f => f.key).map(f => [f.key, f.value]));
+  p.fullName ||= [p.firstName, p.lastName].filter(Boolean).join(' ');
   // First match wins, so order matters ("email address" before "address", "company name" before "name").
   const rules = [
     ['email', /e-?mail/],
     ['firstName', /first.?name|given.?name|fname|forename/],
     ['lastName', /last.?name|family.?name|surname|lname/],
+    ['studentId', /student.?id|universit\w*.?id|varsity.?id|\broll\b|registration.?(no|num)|matric/],
+    ['university', /universit|varsity|college|institut|school/],
     ['username', /user.?name|login.?id|nickname/],
     ['linkedin', /linkedin/],
     ['website', /website|portfolio|homepage|url/],
@@ -22,7 +27,7 @@
     ['fullName', /name/],
   ];
   // Longest label first, so "University ID" beats "University" on a question that contains both.
-  const custom = (profile.custom || []).filter(c => c.label && c.value).sort((a, b) => b.label.length - a.label.length);
+  const custom = fields.filter(f => !f.key).sort((a, b) => b.label.length - a.label.length);
   const resume = resumes.find(r => r.id === activeResume);
   const skip = /^(password|hidden|submit|button|checkbox|radio|image|reset|range|color)$/;
   const describe = el => [
