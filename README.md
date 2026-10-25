@@ -24,5 +24,6 @@ snapfill/
 ├── popup.js        saves your info, runs the fill
 ├── inject.js       runs fill.js on the page, including embedded forms
 ├── fill.js         finds matching boxes and fills them
-└── background.js   handles the Alt+Shift+F shortcut
+├── background.js   handles the Alt+Shift+F shortcut
+└── icons/          toolbar and store icons
 ```
