@@ -13,7 +13,7 @@
     ['website', /website|portfolio|homepage|url/],
     ['jobTitle', /job.?title|position|designation|organization-title/],
     ['company', /company|employer|organi[sz]ation/],
-    ['phone', /phone|mobile|\btel\b|cell/],
+    ['phone', /phone|mobile|\btel\b|cell|whatsapp|contact.?(no|num)/],
     ['zip', /zip|postal|post.?code/],
     ['city', /city|town|address-level2/],
     ['state', /state|province|region|address-level1/],
@@ -21,22 +21,34 @@
     ['address', /address|street|addr/],
     ['fullName', /name/],
   ];
-  const custom = (profile.custom || []).filter(c => c.label && c.value);
+  // Longest label first, so "University ID" beats "University" on a question that contains both.
+  const custom = (profile.custom || []).filter(c => c.label && c.value).sort((a, b) => b.label.length - a.label.length);
   const resume = resumes.find(r => r.id === activeResume);
   const skip = /^(password|hidden|submit|button|checkbox|radio|image|reset|range|color)$/;
   const describe = el => [
     el.autocomplete, el.name, el.id, el.placeholder, el.getAttribute('aria-label'),
     ...[...(el.labels || [])].map(l => l.textContent),
+    ...(el.getAttribute('aria-labelledby') || '').split(/\s+/).map(id => id && document.getElementById(id)?.textContent),
   ].join(' ').toLowerCase();
-  const valueFor = el => {
-    const text = describe(el);
+  // Fallback for forms that show the question as plain text (no <label>): the text of the
+  // largest block around this box that holds no other box.
+  const context = el => {
+    let node = el;
+    while (node.parentElement && node.parentElement !== document.body
+      && node.parentElement.querySelectorAll('input, textarea, select').length === 1) node = node.parentElement;
+    return (node.innerText || '').slice(0, 500).toLowerCase();
+  };
+  const match = text => {
     // Custom fields are the user's own wording, so they win over the built-in guesses.
     const c = custom.find(c => text.includes(c.label.toLowerCase()));
     if (c) return c.value;
-    if (el.type === 'email') return p.email;
-    if (el.type === 'tel') return p.phone;
     const key = rules.find(([, re]) => re.test(text))?.[0];
     return key && p[key];
+  };
+  const valueFor = el => {
+    if (el.type === 'email') return p.email;
+    if (el.type === 'tel') return p.phone;
+    return match(describe(el)) || match(context(el));
   };
   const setValue = (el, v) => {
     // Native setter so React/Vue forms notice the change.
@@ -57,7 +69,7 @@
     if (el.disabled || el.readOnly || skip.test(el.type)) continue;
     if (el.type === 'file') {
       // ponytail: label-based guess; custom drag-and-drop uploaders without a real <input type=file> are not reached.
-      const text = describe(el);
+      const text = describe(el) + ' ' + context(el);
       if (resume && !el.files.length && /resume|\bcv\b|curriculum/.test(text) && !/cover/.test(text)) {
         attach(el, resume);
         filled++;
