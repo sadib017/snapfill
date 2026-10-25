@@ -15,7 +15,7 @@ Open a form and click **Fill this page**, or press **Alt+Shift+F**. To change th
 
 **My info** has the common fields (name, full name, email, phone, address, university, student ID, company, LinkedIn…). Click **×** next to any field you don't need; add it back from **+ Add back a standard field**. Click **+ Add my own field** for anything else, e.g. `Department` → `CSE`: SnapFill fills it into any box whose question contains "Department". If two of your own fields match (e.g. `University` and `University ID`), the longer, more specific one wins.
 
-**Profiles:** keep different versions of your info, e.g. **Personal** and **Work** with different emails and phone numbers. In **My info**, click **+ New** to copy the current profile, rename it and change what differs. On the **Fill** tab, pick which profile to use. The right-click menu shows values from every profile, so you can drop in the other email on a single box.
+**Two emails or phone numbers:** Email and Phone each have two lines. Fill in both and click **Use this** next to the one SnapFill should fill; it switches right away. The right-click menu always shows both, so you can drop the other one into a single box.
 
 **Right-click fill:** right-click any box and pick a saved value from the SnapFill menu. Handy for odd labels like "How can we reach you?".
 
@@ -32,7 +32,7 @@ snapfill/
 ├── manifest.json   extension settings and permissions
 ├── popup.html      the popup window (Fill / My info / Resumes tabs)
 ├── popup.js        saves your info and resumes, backup, runs the fill
-├── data.js         the standard fields and loading saved profiles
+├── data.js         the standard fields and loading saved info
 ├── inject.js       runs fill.js on the page, including embedded forms
 ├── fill.js         finds matching boxes, fills them, attaches your resume
 ├── background.js   shortcut, right-click menu, auto-fill on chosen sites

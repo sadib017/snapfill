@@ -33,7 +33,14 @@
   .field label { flex: 1; }
   .field .x { margin-bottom: 10px; }
   .row select { margin: 0; flex: 1; }
-  .danger { color: #b91c1c; }
+  .two { margin-bottom: 8px; }
+  .field-head { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12px; color: #374151; }
+  .line { display: flex; gap: 6px; align-items: center; margin-top: 3px; }
+  .line input { margin: 0; }
+  .use { flex: none; width: 78px; height: 32px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; color: #374151; font: 500 12px system-ui; cursor: pointer; }
+  .use.on { border-color: #2563eb; background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+  footer { display: flex; justify-content: center; align-items: center; gap: 4px; padding: 10px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 12px; }
+  footer svg { width: 13px; height: 13px; fill: #e11d48; }
   #add-standard { margin: 4px 0 8px; color: #374151; }
 </style>
 <header><img class="logo" src="icons/icon48.png" alt=""><strong>SnapFill</strong></header>
@@ -46,9 +53,6 @@
 <section id="fill">
   <button id="fill-btn" class="primary">Fill this page</button>
   <p class="hint center">Shortcut: Alt + Shift + F · or right-click any box</p>
-  <label>Profile to use
-    <select id="active-profile"></select>
-  </label>
   <label>Resume to attach
     <select id="active-resume"><option value="">None</option></select>
   </label>
@@ -57,14 +61,8 @@
 </section>
 
 <section id="info" hidden>
-  <div class="row">
-    <select id="profile-select" aria-label="Profile to edit"></select>
-    <button type="button" id="new-profile" class="secondary" title="Copy this profile into a new one">+ New</button>
-    <button type="button" id="delete-profile" class="secondary danger">Delete</button>
-  </div>
-  <p class="hint">Profiles keep different versions of your info, e.g. a Personal and a Work email.</p>
   <form id="form">
-    <label>Profile name <input id="profile-name" required></label>
+    <p class="hint">Got two emails or phone numbers? Fill in both and click <b>Use this</b> on the one SnapFill should fill.</p>
     <div id="fields"></div>
     <select id="add-standard" aria-label="Add back a standard field"></select>
     <button type="button" id="add" class="secondary">+ Add my own field</button>
@@ -92,6 +90,7 @@
   </form>
   <div id="resume-status" class="status" role="status"></div>
 </section>
+<footer>Made with <svg viewBox="0 0 24 24" role="img" aria-label="love"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.6 4.5c2.1 0 3.6 1.2 5.4 3.1 1.8-1.9 3.3-3.1 5.4-3.1 3.6 0 5.7 3.7 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg> by Sadib</footer>
 <script src="data.js"></script>
 <script src="inject.js"></script>
 <script src="popup.js"></script>

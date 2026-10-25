@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const store = chrome.storage.local;
 const form = $('form');
-const KEYS = ['profiles', 'activeProfile', 'profile', 'resumes', 'activeResume', 'autoSites'];
+const KEYS = ['fields', 'profiles', 'activeProfile', 'profile', 'resumes', 'activeResume', 'autoSites'];
 const MAX_RESUME = 5 * 1024 * 1024;
 
 const showTab = name => {
@@ -12,31 +12,61 @@ const showTab = name => {
 };
 for (const b of document.querySelectorAll('nav button')) b.onclick = () => showTab(b.dataset.tab);
 
-// --- My info: profiles and their fields ---
-let profiles = [];
-let activeProfile = '';
-let editing = '';
-const current = () => profiles.find(p => p.id === editing);
+// --- My info ---
 const label = key => STANDARD.find(([k]) => k === key)[1];
+const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
 
 const xButton = (onclick, name) => {
-  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'x', textContent: '×', onclick });
+  const b = el('button', { type: 'button', className: 'x', textContent: '×', onclick });
   b.setAttribute('aria-label', `Delete ${name}`);
   return b;
 };
 
+// Email and phone: two lines, each with a "Use this" button; the one in use gets filled.
+const twoLines = (row, f) => {
+  const type = f.key === 'email' ? 'email' : 'text';
+  const name = label(f.key).toLowerCase();
+  row.dataset.use = f.use ? 1 : 0;
+  const lines = [f.value, f.value2 || ''].map((value, i) => {
+    const input = el('input', { value, type, placeholder: i ? `Second ${name} (optional)` : `Main ${name}` });
+    input.setAttribute('aria-label', `${label(f.key)} ${i + 1}`);
+    const use = el('button', { type: 'button', className: 'use' });
+    use.onclick = async () => {
+      row.dataset.use = i;
+      paint();
+      await store.set({ fields: collect() });
+    };
+    return [el('div', { className: 'line' }), input, use];
+  });
+  const paint = () => lines.forEach(([, , use], i) => {
+    const on = Number(row.dataset.use) === i;
+    use.textContent = on ? '✓ In use' : 'Use this';
+    use.classList.toggle('on', on);
+    use.setAttribute('aria-pressed', on);
+  });
+  const head = el('div', { className: 'field-head' });
+  head.append(el('span', { textContent: label(f.key) }), xButton(() => { row.remove(); renderAddStandard(); }, label(f.key)));
+  row.append(head);
+  for (const [line, input, use] of lines) { line.append(input, use); row.append(line); }
+  paint();
+};
+
 const addField = (f = { label: '', value: '' }) => {
-  const row = document.createElement('div');
-  row.className = f.key ? 'field' : 'row';
-  if (f.key) {
+  const row = el('div');
+  if (TWO.includes(f.key)) {
+    row.className = 'two';
     row.dataset.key = f.key;
-    const l = document.createElement('label');
-    l.textContent = label(f.key) + ' ';
-    l.append(Object.assign(document.createElement('input'), { value: f.value, type: f.key === 'email' ? 'email' : 'text' }));
+    twoLines(row, f);
+  } else if (f.key) {
+    row.className = 'field';
+    row.dataset.key = f.key;
+    const l = el('label', { textContent: label(f.key) + ' ' });
+    l.append(el('input', { value: f.value }));
     row.append(l, xButton(() => { row.remove(); renderAddStandard(); }, label(f.key)));
   } else {
-    const l = Object.assign(document.createElement('input'), { value: f.label, placeholder: 'Field name, e.g. Department' });
-    const v = Object.assign(document.createElement('input'), { value: f.value, placeholder: 'Your answer' });
+    row.className = 'row';
+    const l = el('input', { value: f.label, placeholder: 'Field name, e.g. Department' });
+    const v = el('input', { value: f.value, placeholder: 'Your answer' });
     l.setAttribute('aria-label', 'Field name');
     v.setAttribute('aria-label', 'Your answer');
     row.append(l, v, xButton(() => row.remove(), 'this field'));
@@ -54,78 +84,31 @@ const renderAddStandard = () => {
 };
 $('add-standard').onchange = e => {
   if (!e.target.value) return;
-  addField({ key: e.target.value, label: label(e.target.value), value: '' });
+  addField({ key: e.target.value, label: label(e.target.value), value: '', value2: '', use: 0 });
   renderAddStandard();
 };
 
-const renderInfo = () => {
-  $('profile-select').replaceChildren(...profiles.map(p => new Option(p.name, p.id)));
-  $('profile-select').value = editing;
-  $('profile-name').value = current().name;
-  $('fields').replaceChildren();
-  current().fields.forEach(f => addField(f));
-  renderAddStandard();
-  $('delete-profile').disabled = profiles.length < 2;
-  $('delete-profile').textContent = 'Delete';
-  $('active-profile').replaceChildren(...profiles.map(p => new Option(p.name, p.id)));
-  $('active-profile').value = activeProfile;
-};
-
-// Copies what's on screen into the profile being edited.
-const collect = () => {
-  const p = current();
-  p.name = $('profile-name').value.trim() || p.name;
-  p.fields = [...$('fields').children].map(row => {
-    const inputs = row.querySelectorAll('input');
-    return row.dataset.key
-      ? { key: row.dataset.key, label: label(row.dataset.key), value: inputs[0].value.trim() }
-      : { label: inputs[0].value.trim(), value: inputs[1].value.trim() };
-  }).filter(f => f.key || f.label);
-};
-const saveProfiles = () => store.set({ profiles, activeProfile });
-
-$('profile-select').onchange = async e => {
-  collect();
-  editing = e.target.value;
-  await saveProfiles();
-  renderInfo();
-};
-$('new-profile').onclick = async () => {
-  collect();
-  const copy = { id: newId(), name: `Profile ${profiles.length + 1}`, fields: current().fields.map(f => ({ ...f })) };
-  profiles.push(copy);
-  editing = copy.id;
-  await saveProfiles();
-  renderInfo();
-  $('profile-name').select();
-};
-$('delete-profile').onclick = async e => {
-  if (profiles.length < 2) return;
-  if (e.target.textContent !== 'Sure?') return (e.target.textContent = 'Sure?'); // click twice to delete
-  profiles = profiles.filter(p => p.id !== editing);
-  if (activeProfile === editing) activeProfile = profiles[0].id;
-  editing = profiles[0].id;
-  await saveProfiles();
-  renderInfo();
-};
-$('active-profile').onchange = async e => {
-  activeProfile = e.target.value;
-  await store.set({ activeProfile });
-};
+// Reads the fields from the screen.
+const collect = () => [...$('fields').children].map(row => {
+  const inputs = row.querySelectorAll('input');
+  const key = row.dataset.key;
+  if (TWO.includes(key)) return { key, label: label(key), value: inputs[0].value.trim(), value2: inputs[1].value.trim(), use: Number(row.dataset.use) };
+  return key ? { key, label: label(key), value: inputs[0].value.trim() } : { label: inputs[0].value.trim(), value: inputs[1].value.trim() };
+}).filter(f => f.key || f.label);
 
 form.onsubmit = async e => {
   e.preventDefault();
-  collect();
-  await saveProfiles();
-  renderInfo();
+  await store.set({ fields: collect() });
   showTab('fill');
   $('fill-status').textContent = 'Saved.';
 };
 
+let fields = [];
 const loadInfo = async () => {
-  ({ profiles, activeProfile } = await loadProfiles());
-  editing = activeProfile;
-  renderInfo();
+  fields = await loadFields();
+  $('fields').replaceChildren();
+  fields.forEach(f => addField(f));
+  renderAddStandard();
 };
 
 // --- Resumes ---
@@ -184,6 +167,7 @@ $('import-file').onchange = async e => {
     const data = JSON.parse(await e.target.files[0].text());
     const ok = data && typeof data === 'object' && !Array.isArray(data) && KEYS.some(k => k in data)
       && (!data.profile || typeof data.profile === 'object')
+      && (!data.fields || Array.isArray(data.fields))
       && (!data.profiles || Array.isArray(data.profiles))
       && (!data.resumes || Array.isArray(data.resumes))
       && (!data.autoSites || Array.isArray(data.autoSites));
@@ -193,7 +177,9 @@ $('import-file').onchange = async e => {
     if (clean.profiles) clean.profiles = clean.profiles
       .filter(p => typeof p?.id === 'string' && typeof p.name === 'string' && Array.isArray(p.fields))
       .map(p => ({ ...p, fields: p.fields.filter(f => typeof f?.label === 'string' && typeof f.value === 'string') }));
-    if (!clean.profiles?.length) clean.profiles = []; // an older backup: loadProfiles converts its `profile`
+    if (clean.fields) clean.fields = clean.fields.filter(f => typeof f?.label === 'string' && typeof f.value === 'string');
+    // Replace all saved info; for an older backup (no `fields`), loadFields then converts its profile(s).
+    for (const k of ['fields', 'profiles', 'profile']) if (!clean[k]) clean[k] = null;
     if (clean.autoSites) clean.autoSites = clean.autoSites.filter(h => typeof h === 'string');
     await store.set(clean);
     await loadInfo();
@@ -235,5 +221,5 @@ $('fill-btn').onclick = async () => {
   } else {
     $('auto').disabled = true;
   }
-  if (!current().fields.some(f => f.value)) showTab('info'); // first run: ask for info before anything else
+  if (!fields.some(f => f.value)) showTab('info'); // first run: ask for info before anything else
 })();

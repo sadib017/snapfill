@@ -1,9 +1,8 @@
-// Injected on demand: fills empty fields that match the saved profile, and attaches the chosen resume.
+// Injected on demand: fills empty fields that match your saved info, and attaches the chosen resume.
 // Never touches passwords.
 (async () => {
-  const { profiles, activeProfile } = await loadProfiles(); // from data.js, injected first
+  const fields = (await loadFields()).map(f => ({ ...f, value: valueOf(f) })).filter(f => f.value); // data.js, injected first
   const { resumes = [], activeResume } = await chrome.storage.local.get(['resumes', 'activeResume']);
-  const fields = profiles.find(x => x.id === activeProfile).fields.filter(f => f.value);
   const p = Object.fromEntries(fields.filter(f => f.key).map(f => [f.key, f.value]));
   p.fullName ||= [p.firstName, p.lastName].filter(Boolean).join(' ');
   // First match wins, so order matters ("email address" before "address", "company name" before "name").

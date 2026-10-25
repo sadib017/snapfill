@@ -1,15 +1,8 @@
 importScripts('data.js', 'inject.js');
 
-// Right-click menu: "Fill this page" plus every saved value from every profile, rebuilt whenever they change.
+// Right-click menu: "Fill this page" plus every saved value (both emails and phones), rebuilt whenever they change.
 async function buildMenus() {
-  const { profiles } = await loadProfiles();
-  const seen = new Set();
-  const items = [];
-  for (const p of profiles) for (const f of p.fields) {
-    if (!f.value || seen.has(f.label + '\n' + f.value)) continue;
-    seen.add(f.label + '\n' + f.value);
-    items.push([profiles.length > 1 ? `${f.label} (${p.name})` : f.label, f.value]);
-  }
+  const items = (await loadFields()).flatMap(f => [f.value, f.value2].filter(Boolean).map(v => [f.label, v]));
   await chrome.contextMenus.removeAll();
   chrome.contextMenus.create({ id: 'page', title: 'SnapFill: fill this page', contexts: ['page', 'editable'] });
   items.forEach(([label, value], i) => {
@@ -48,7 +41,7 @@ async function onTabUpdated(tabId, change, tab) {
 }
 
 chrome.runtime.onInstalled.addListener(buildMenus);
-chrome.storage.onChanged.addListener(c => { if (c.profiles) buildMenus(); });
+chrome.storage.onChanged.addListener(c => { if (c.fields) buildMenus(); });
 chrome.contextMenus.onClicked.addListener(onMenuClick);
 chrome.tabs.onUpdated.addListener(onTabUpdated);
 chrome.commands.onCommand.addListener((cmd, tab) => { if (cmd === 'fill-form') fillTab(tab.id); });
